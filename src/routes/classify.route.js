@@ -34,7 +34,7 @@ router.get("/classify", async (req, res) => {
     } catch (error) {
         return res.status(error.status || 502).json({
             status: "error",
-            message: error.message || "Failed to fetch data from Genderize API"
+            message: error.message || "Failed to fetch data from Genderize AP"
         })
     }
 })
