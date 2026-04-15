@@ -11,7 +11,7 @@ The API processes the raw response and returns a structured result, including a 
 ## 🌐 Live API
 
 ```
-https://localhost:3000/api/classify?name=john
+https://name-classification-api.vercel.app/api/classify?name=john
 ```
 
 ---

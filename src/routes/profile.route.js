@@ -1,19 +1,20 @@
 import express from "express";
-import { getGenderData } from "../services/genderize.service.js";
-import { buildResponse } from "../utils/helpers.js";
+import { createProfile } from "../services/profile.service.js";
 
 const router = express.Router()
 
-router.get("/classify", async (req, res) => {
+router.post("/profile", async (req, res) => {
     try {
-        const {name} = req.query
+        const {name} = req.body
+
+        // Validation Checks
 
         // Check existence first (without .trim)
         // 400: Checks if name is Missing
         if (name === undefined || name === null || !name) {
             return res.status(400).json({
                 status: "error",
-                message: "Name query parameter is required"
+                message: "Name is required"
             });
         }
 
@@ -31,21 +32,29 @@ router.get("/classify", async (req, res) => {
         if (name.trim() === "") {
             return res.status(400).json({
                 status: "error",
-                message: "Name query parameter is required"
+                message: "Name is required"
             });
         }
 
-        const data = await getGenderData(name)
+        const result = await createProfile(name)
 
-        return res.status(200).json({
+        if (result.existing) {
+            return res.status(200).json({
+                status: "success",
+                message: "Profile already exists",
+                data: result.data
+            })
+        }
+
+        return res.status(201).json({
             status: "success",
-            data: buildResponse(name, data)
+            data: result.data
         })
 
     } catch (error) {
-        return res.status(error.status || 502).json({
+        return res.status(error.status || 500).json({
             status: "error",
-            message: error.message || "Failed to fetch data from Genderize AP"
+            message: error.message
         })
     }
 })

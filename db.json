@@ -1,0 +1,40 @@
+{
+  "profiles": [
+    {
+      "id": "019d8f50-f868-7329-ac83-b13201123250",
+      "name": "john",
+      "gender": "male",
+      "gender_probability": 1,
+      "sample_size": 2692560,
+      "age": 75,
+      "age_group": "senior",
+      "country_id": "NG",
+      "country_probability": 0.07613817567167579,
+      "created_at": "2026-04-15T04:05:41.609Z"
+    },
+    {
+      "id": "019d8f51-68d2-7528-882d-1a1c10c7c2e5",
+      "name": "ella",
+      "gender": "female",
+      "gender_probability": 0.99,
+      "sample_size": 97517,
+      "age": 53,
+      "age_group": "adult",
+      "country_id": "CM",
+      "country_probability": 0.09677289106552395,
+      "created_at": "2026-04-15T04:06:10.386Z"
+    },
+    {
+      "id": "019d8f56-dfb9-75fc-8843-5ccd8abed30f",
+      "name": "peter",
+      "gender": "male",
+      "gender_probability": 1,
+      "sample_size": 1346866,
+      "age": 71,
+      "age_group": "senior",
+      "country_id": "NG",
+      "country_probability": 0.07808044340500363,
+      "created_at": "2026-04-15T04:12:08.505Z"
+    }
+  ]
+}
