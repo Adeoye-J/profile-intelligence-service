@@ -10,11 +10,22 @@ export async function getGenderData(name) {
         const {gender, probability, count} = response.data
 
         // Edge case
-        if (gender === null || count === 0) {
+        // if (gender === null || count === 0) {
+        //     throw {
+        //         status: 422,
+        //         message: "No prediction available for the provided name"       
+        //     }
+        // }
+        if (
+            gender === null ||
+            count === 0 ||
+            Number(probability) < 0.6 ||   // 🔥 NEW
+            count < 10                     // 🔥 NEW
+        ) {
             throw {
                 status: 422,
-                message: "No prediction available for the provided name"       
-            }
+                message: "No prediction available for the provided name"
+            };
         }
 
         return { gender, probability, count }

@@ -1,19 +1,16 @@
-
 export function buildResponse(name, data) {
-    const { gender, probability, count } = data
+  const probability = Number(data.probability);
+  const sample_size = data.count;
 
-    const sample_size = count
-    
-    const is_confident = (Number(probability) >= 0.7) && (sample_size >= 100)
+  const is_confident =
+    probability >= 0.7 && sample_size >= 100;
 
-    const processed_at = new Date().toISOString();
-
-    return {
-        name: name.toLowerCase(),
-        gender,
-        probability: Number(probability),
-        sample_size,
-        is_confident,
-        processed_at
-    }
+  return {
+    name: name.toLowerCase(),
+    gender: data.gender,
+    probability,
+    sample_size,
+    is_confident,
+    processed_at: new Date().toISOString()
+  };
 }
