@@ -1,4 +1,4 @@
-import { countryMap } from "./countries"
+import { countryMap } from "./countries.js"
 
 export function parseQuery(q) {
     const text = q.toLowerCase()
@@ -53,7 +53,7 @@ export function parseQuery(q) {
     //     kenya: "KE",
     //     angola: "AO"
     // }
-    
+
     for (const key in countryMap){ 
         if (text.includes(key)) {
             query.country_id = countryMap[key]
