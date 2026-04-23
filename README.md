@@ -1,22 +1,17 @@
-# 🚀 Profile Intelligence Service API (HNG Stage 0 & Stage 1)
+# 🚀 Profile Intelligence Service API (HNG Stage 2)
 
 ## 📌 Overview
 
-This project is a backend API that evolves across two stages:
+This project is a **Profile Intelligence Service** built for Insighta Labs.
 
-### 🟢 Stage 0
+It enables clients (marketing teams, analysts, product teams) to:
 
-Classifies a name using the Genderize API and returns processed gender insights.
+* Query demographic data efficiently
+* Apply advanced filters
+* Sort and paginate results
+* Perform natural language searches
 
-### 🔵 Stage 1
-
-Builds a **Profile Intelligence Service** that:
-
-* Enriches a name using multiple external APIs
-* Processes and structures the data
-* Stores results in a database (MongoDB)
-* Provides endpoints for retrieval, filtering, and deletion
-* Ensures idempotent behavior
+The system integrates external APIs, stores enriched profiles in MongoDB, and exposes a powerful query engine.
 
 ---
 
@@ -34,7 +29,7 @@ https://name-classification-api.vercel.app
 * Express.js
 * MongoDB (Mongoose)
 * Axios
-* UUID
+* UUID v7
 * CORS
 * dotenv
 
@@ -47,23 +42,18 @@ profile-intelligence-service/
 │
 ├── src/
 │   ├── config/
-│   │   └── db.js
 │   │
 │   ├── models/
-│   │   └── profile.model.js
 │   │
 │   ├── routes/
-│   │   ├── classify.route.js
-│   │   └── profile.route.js
 │   │
 │   ├── services/
-│   │   ├── genderize.service.js
-│   │   └── profile.service.js
 │   │
 │   └── utils/
-│       └── helpers.js
 │
 ├── index.js
+├── seed.js
+├── seed_profiles.json
 ├── package.json
 ├── .env
 └── README.md
@@ -241,6 +231,7 @@ profile-intelligence-service/
 
 ---
 
+
 # ❌ Error Responses
 
 ### 400 – Missing Name
@@ -338,6 +329,266 @@ profile-intelligence-service/
 * Designed to handle multiple requests reliably
 
 ---
+
+
+# 🧠 Core Features
+
+## 1. Advanced Filtering
+
+Supports combinable filters:
+
+* `gender`
+* `age_group`
+* `country_id`
+* `min_age`, `max_age`
+* `min_gender_probability`
+* `min_country_probability`
+
+All filters are applied together using MongoDB query objects.
+
+---
+
+## 2. Sorting
+
+Supported fields:
+
+* `age`
+* `created_at`
+* `gender_probability`
+
+Order:
+
+* `asc` (default)
+* `desc`
+
+---
+
+## 3. Pagination
+
+* `page` (default: 1)
+* `limit` (default: 10, max: 50)
+
+Efficient pagination implemented using:
+
+```
+skip = (page - 1) * limit
+```
+
+---
+
+## 4. Natural Language Search (Core Feature)
+
+### Endpoint
+
+```
+GET /api/profiles/search?q=<query>
+```
+
+---
+
+## 🧠 Parsing Approach
+
+The system uses a **rule-based parser** (no AI/LLMs) to convert plain English queries into structured filters.
+
+### Steps:
+
+1. Convert query to lowercase
+2. Extract keywords using string matching and regex
+3. Map keywords to filter fields
+4. Build a MongoDB query object
+
+---
+
+## 🔑 Supported Keywords & Mappings
+
+### Gender
+
+| Keyword | Filter        |
+| ------- | ------------- |
+| male    | gender=male   |
+| female  | gender=female |
+
+---
+
+### Age Groups
+
+| Keyword         | Filter             |
+| --------------- | ------------------ |
+| child           | age_group=child    |
+| teenager / teen | age_group=teenager |
+| adult           | age_group=adult    |
+| senior          | age_group=senior   |
+
+---
+
+### Age Conditions
+
+| Query    | Filter     |
+| -------- | ---------- |
+| above 30 | min_age=30 |
+| below 25 | max_age=25 |
+
+Regex used:
+
+```
+/above (\d+)/
+/below (\d+)/
+```
+
+---
+
+### Special Keyword
+
+| Keyword | Mapping                |
+| ------- | ---------------------- |
+| young   | min_age=16, max_age=24 |
+
+> Note: "young" is not stored in DB — used only during parsing
+
+---
+
+### Country Mapping
+
+Country names and demonyms are mapped to ISO codes using a lookup dictionary.
+
+Examples:
+
+| Input                    | Output |
+| ------------------------ | ------ |
+| nigeria / nigerian       | NG     |
+| kenya / kenyan           | KE     |
+| united states / american | US     |
+| uk / british             | GB     |
+
+---
+
+## 🧪 Example Queries
+
+| Query                  | Parsed Filters                              |
+| ---------------------- | ------------------------------------------- |
+| young males            | gender=male, min_age=16, max_age=24         |
+| females above 30       | gender=female, min_age=30                   |
+| people from angola     | country_id=AO                               |
+| adult males from kenya | gender=male, age_group=adult, country_id=KE |
+| teenagers below 18     | age_group=teenager, max_age=18              |
+
+---
+
+## ❌ Invalid Query Handling
+
+If a query cannot be interpreted:
+
+```json
+{
+  "status": "error",
+  "message": "Unable to interpret query"
+}
+```
+
+---
+
+# 📥 API Endpoints
+
+## 1. GET /api/profiles
+
+Supports filtering, sorting, and pagination.
+
+### Example
+
+```
+/api/profiles?gender=male&country_id=NG&min_age=25&sort_by=age&order=desc&page=1&limit=10
+```
+
+---
+
+## 2. GET /api/profiles/search
+
+Natural language query endpoint.
+
+```
+/api/profiles/search?q=young males from nigeria
+```
+
+---
+
+## 3. GET /api/profiles/{id}
+
+Fetch a single profile by ID.
+
+---
+
+## 4. DELETE /api/profiles/{id}
+
+Deletes a profile.
+
+Returns:
+
+```
+204 No Content
+```
+
+---
+
+# 💾 Data Model
+
+Each profile contains:
+
+* `id` (UUID v7)
+* `name` (unique)
+* `gender`
+* `gender_probability`
+* `age`
+* `age_group`
+* `country_id`
+* `country_name`
+* `country_probability`
+* `created_at`
+
+---
+
+# 🌱 Data Seeding
+
+Database is seeded with 2026 profiles using:
+
+```bash
+npm run seed
+```
+
+* Uses upsert to prevent duplicates
+* Ensures idempotency
+
+---
+
+# ⚠️ Limitations
+
+The parser is intentionally simple and rule-based.
+
+### Known Limitations:
+
+* Does not handle complex grammar
+
+  * e.g., "males younger than females over 30"
+* Cannot interpret synonyms beyond defined keywords
+
+  * e.g., "guys" instead of "male"
+* Limited demonym coverage for some countries
+* Does not support multi-condition logic like:
+
+  * "male OR female"
+* Relies on keyword presence, not sentence structure
+* Does not detect misspellings
+
+---
+
+# ⚡ Performance Considerations
+
+* MongoDB indexing used for fast queries
+* Filtering handled at database level (no full-table scans)
+* Pagination prevents large data loads
+* External API calls are not used in query endpoints
+
+---
+
 
 # 🔐 CORS
 
