@@ -3,10 +3,12 @@ import { createProfile } from "../services/profile.service.js";
 import Profile from "../models/profile.model.js";
 import { buildOptions, buildQuery } from "../services/query.service.js";
 import { parseQuery } from "../utils/parser.js";
+import { authenticate } from "../middleware/auth.middleware.js";
+import { authorize } from "../middleware/role.middleware.js";
 
 const router = express.Router()
 
-router.post("/profiles", async (req, res) => {
+router.post("/profiles", authenticate, authorize("admin"), async (req, res) => {
     try {
         const {name} = req.body
 
@@ -62,7 +64,7 @@ router.post("/profiles", async (req, res) => {
     }
 })
 
-router.get("/profiles", async (req, res) => {
+router.get("/profiles", authenticate, authorize("admin", "analyst"), async (req, res) => {
 
     try {
         const query = buildQuery(req.query)
@@ -99,7 +101,7 @@ router.get("/profiles", async (req, res) => {
 
 })
 
-router.get("/profiles/search", async (req, res) => {
+router.get("/profiles/search", authenticate, authorize("admin", "analyst"), async (req, res) => {
     const { q } = req.query
 
     if (!q || typeof q !== "string") {
@@ -134,7 +136,7 @@ router.get("/profiles/search", async (req, res) => {
     })
 })
 
-router.get("/profiles/:id", async (req, res) => {
+router.get("/profiles/:id", authenticate, authorize("admin", "analyst"), async (req, res) => {
     const profile = await Profile.findOne({ id: req.params.id })
 
     if (!profile) {
@@ -150,7 +152,7 @@ router.get("/profiles/:id", async (req, res) => {
     })
 })
 
-router.delete("/profiles/:id", async (req, res) => {
+router.delete("/profiles/:id", authenticate, authorize("admin"), async (req, res) => {
     const result = await Profile.findOneAndDelete({ id: req.params.id })
 
     if (!result) {
