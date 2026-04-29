@@ -1,4 +1,3 @@
-
 import axios from "axios";
 
 export async function exchangeCodeForGithubToken(code, codeVerifier) {
@@ -18,8 +17,8 @@ export async function exchangeCodeForGithubToken(code, codeVerifier) {
     }
   );
 
-  if (response.data.error) {
-    throw new Error(response.data.error_description || response.data.error);
+  if (response.data.error || !response.data.access_token) {
+    throw new Error(response.data.error_description || "GitHub token exchange failed");
   }
 
   return response.data.access_token;

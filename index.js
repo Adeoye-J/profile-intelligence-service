@@ -3,7 +3,8 @@ import cors from "cors";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 
-
+import userRoute from "./src/routes/user.route.js";
+import { authLimiter } from "./src/middleware/authRateLimit.middleware.js";
 import { connectDB } from "./src/config/bd.js";
 import classifyRoute from "./src/routes/classify.route.js"
 import profileRoute from "./src/routes/profile.route.js"
