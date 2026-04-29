@@ -57,7 +57,7 @@ export function parseQuery(q) {
     for (const key in countryMap){ 
         if (text.includes(key)) {
             query.country_id = countryMap[key]
-            break;
+            // break;
         }
     }
 
