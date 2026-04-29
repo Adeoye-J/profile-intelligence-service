@@ -3,10 +3,13 @@ import { createProfile } from "../services/profile.service.js";
 import Profile from "../models/profile.model.js";
 import { buildOptions, buildQuery } from "../services/query.service.js";
 import { parseQuery } from "../utils/parser.js";
+import { authenticate } from "../middleware/auth.middleware.js";
+import { authorize } from "../middleware/role.middleware.js";
+import { Parser } from "json2csv";
 
 const router = express.Router()
 
-router.post("/profiles", async (req, res) => {
+router.post("/profiles", authenticate, authorize("admin"), async (req, res) => {
     try {
         const {name} = req.body
 
@@ -62,7 +65,7 @@ router.post("/profiles", async (req, res) => {
     }
 })
 
-router.get("/profiles", async (req, res) => {
+router.get("/profiles", authenticate, authorize("admin", "analyst"), async (req, res) => {
 
     try {
         const query = buildQuery(req.query)
@@ -99,7 +102,7 @@ router.get("/profiles", async (req, res) => {
 
 })
 
-router.get("/profiles/search", async (req, res) => {
+router.get("/profiles/search", authenticate, authorize("admin", "analyst"), async (req, res) => {
     const { q } = req.query
 
     if (!q || typeof q !== "string") {
@@ -134,7 +137,39 @@ router.get("/profiles/search", async (req, res) => {
     })
 })
 
-router.get("/profiles/:id", async (req, res) => {
+router.get("/profiles/export", authenticate, authorize("admin", "analyst"), async (req, res) => {
+    try {
+      const profiles = await Profile.find({}).lean();
+
+      const fields = [
+        "id",
+        "name",
+        "gender",
+        "gender_probability",
+        "age",
+        "age_group",
+        "country_id",
+        "country_name",
+        "country_probability",
+        "created_at"
+      ];
+
+      const parser = new Parser({ fields });
+      const csv = parser.parse(profiles);
+
+      res.header("Content-Type", "text/csv");
+      res.attachment("profiles.csv");
+      return res.send(csv);
+    } catch {
+      return res.status(500).json({
+        status: "error",
+        message: "Failed to export profiles"
+      });
+    }
+  }
+);
+
+router.get("/profiles/:id", authenticate, authorize("admin", "analyst"), async (req, res) => {
     const profile = await Profile.findOne({ id: req.params.id })
 
     if (!profile) {
@@ -150,7 +185,7 @@ router.get("/profiles/:id", async (req, res) => {
     })
 })
 
-router.delete("/profiles/:id", async (req, res) => {
+router.delete("/profiles/:id", authenticate, authorize("admin"), async (req, res) => {
     const result = await Profile.findOneAndDelete({ id: req.params.id })
 
     if (!result) {
