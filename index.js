@@ -32,6 +32,7 @@ app.use(apiLimiter)
 
 // Routes
 app.use("/api", classifyRoute)
+app.use("/api", profileRoute)
 app.use("/api/v1", profileRoute)
 app.use("/api/v1/auth", authRoute)
 
