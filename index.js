@@ -20,23 +20,25 @@ connectDB()
 
 app.set("trust proxy", 1);
 
-// Middlewares
-app.use(
-    cors({
-        origin: process.env.FRONTEND_URL || "*",
-        credentials: true
-    })
-)
-app.use(express.json())
-app.use(cookieParser())
-app.use(requestLogger)
-app.use(apiLimiter)
+app.use(cors({
+  origin: process.env.FRONTEND_URL,
+  credentials: true
+}));
 
-// Routes
-app.use("/api", classifyRoute)
-app.use("/api", profileRoute)
-app.use("/api/v1", profileRoute)
-app.use("/api/v1/auth", authRoute)
+app.use(express.json());
+app.use(cookieParser());
+app.use(requestLogger);
+
+// IMPORTANT: rate limit auth too
+app.use("/auth", authLimiter, authRoute);
+app.use("/api/v1/auth", authLimiter, authRoute);
+
+// Profile routes
+app.use("/api/v1", profileRoute);
+
+// Compatibility user route
+app.use("/api/users", userRoute);
+app.use("/api/v1/users", userRoute);
 
 // ✅ Export for Vercel
 export default app;
