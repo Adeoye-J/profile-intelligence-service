@@ -11,7 +11,7 @@ import profileRoute from "./src/routes/profile.route.js"
 import authRoute from "./src/routes/auth.route.js"
 import { requestLogger } from "./src/middleware/logger.middleware.js";
 import { apiLimiter } from "./src/middleware/rateLimit.middleware.js";
-
+import { authenticate } from "./src/middleware/auth.middleware.js";
 
 dotenv.config();
 
@@ -36,10 +36,15 @@ app.use("/api/v1/auth", authLimiter, authRoute);
 
 // Profile routes
 app.use("/api/v1", profileRoute);
+app.use("/api/v1", apiLimiter, authenticate, profileRoute);
+app.use("/api/profiles", authenticate, profileRoute);
 
 // Compatibility user route
 app.use("/api/users", userRoute);
 app.use("/api/v1/users", userRoute);
+
+app.use("/auth/github", authLimiter);
+app.use("/auth", authLimiter, authRoute);
 
 // ✅ Export for Vercel
 export default app;
