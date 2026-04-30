@@ -10,6 +10,7 @@ import {
   generateRefreshToken,
   verifyRefreshToken
 } from "../services/token.service.js";
+import { authenticate } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
@@ -211,6 +212,18 @@ router.post("/logout", async (req, res) => {
   return res.status(200).json({
     status: "success",
     message: "Logged out successfully"
+  });
+});
+
+router.get("/me", authenticate, (req, res) => {
+  return res.status(200).json({
+    status: "success",
+    data: {
+      id: req.user._id,
+      username: req.user.username,
+      role: req.user.role,
+      avatar_url: req.user.avatar_url
+    }
   });
 });
 
