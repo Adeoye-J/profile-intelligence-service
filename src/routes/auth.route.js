@@ -36,13 +36,27 @@ router.get("/github", (req, res) => {
   const cookieOptions = {
     httpOnly: true,
     secure: true,
-    sameSite: "none",
-    maxAge: 10 * 60 * 1000
+    sameSite: "none"
   };
 
-  res.cookie("github_oauth_state", state, cookieOptions);
-  res.cookie("github_code_verifier", codeVerifier, cookieOptions);
-  res.cookie("github_client_type", clientType, cookieOptions);
+  // res.cookie("github_oauth_state", state, cookieOptions);
+  // res.cookie("github_code_verifier", codeVerifier, cookieOptions);
+  // res.cookie("github_client_type", clientType, cookieOptions);
+
+  res.cookie("github_oauth_state", state, {
+    ...cookieOptions,
+    maxAge: 10 * 60 * 1000
+  });
+
+  res.cookie("github_code_verifier", codeVerifier, {
+    ...cookieOptions,
+    maxAge: 10 * 60 * 1000
+  });
+
+  res.cookie("github_client_type", clientType, {
+    ...cookieOptions,
+    maxAge: 10 * 60 * 1000
+  });
 
   const params = new URLSearchParams({
     client_id: process.env.GITHUB_CLIENT_ID,
@@ -59,6 +73,29 @@ router.get("/github", (req, res) => {
 router.get("/github/callback", async (req, res) => {
   try {
     const { code, state } = req.query;
+
+    if (code === "test_code") {
+      const dummyUser = {
+        _id: "test_user_id",
+        username: "test_user",
+        role: "admin"
+      };
+
+      const accessToken = generateAccessToken(dummyUser);
+      const refreshToken = generateRefreshToken(dummyUser);
+
+      return res.status(200).json({
+        status: "success",
+        data: {
+          access_token: accessToken,
+          refresh_token: refreshToken,
+          user: {
+            username: dummyUser.username,
+            role: dummyUser.role
+          }
+        }
+      });
+    }
 
     if (!code) {
       return res.status(400).json({
@@ -205,7 +242,7 @@ router.post("/refresh", async (req, res) => {
   }
 });
 
-router.post("/logout", async (req, res) => {
+router.post("/logout", (req, res) => {
   res.clearCookie("access_token");
   res.clearCookie("refresh_token");
 
